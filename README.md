@@ -48,7 +48,22 @@ This project, **maze_path_finder**, implements multiple algorithms for maze path
 
 
 ## Visualization
-
 The visualization is done using the curses library, which provides a terminal-based interface to display the maze and the path finding process.
+
+Here are some examples:
+### **python path_finder.py --maze_type 0**  
+![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_0.png)
+
+
+### **python path_finder.py --maze_type 1**    
+![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_1.png)
+
+
+### **python path_finder.py --maze_type 3 --rows 25 --cols 25**  
+![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_3_r25_c25.png)
+
+
+### **python path_finder.py --maze_type 4 --rows 20 --cols 20**  
+![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_4_r20_c20.png)
 
 
