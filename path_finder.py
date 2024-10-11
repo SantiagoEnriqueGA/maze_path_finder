@@ -812,17 +812,16 @@ def main(stdscr):
 
     # Maze generation
     # -------------------------------------------
-    if args.maze_type == 0:
-        maze = maze_small()
-    if args.maze_type == 1:
-        maze = maze_large()
-    if args.maze_type == 2:
-        maze = maze_csv()
-    if args.maze_type == 3:
-        maze = random_grid_maze(args.rows, args.cols)
-    if args.maze_type == 4:
-        maze = random_maze(args.rows, args.cols)
-    elif args.maze_type not in [0, 1, 2, 3, 4]:
+    maze_generators = {
+        0: maze_small,
+        1: maze_large,
+        2: maze_csv,
+        3: lambda: random_grid_maze(args.rows, args.cols),
+        4: lambda: random_maze(args.rows, args.cols)
+    }
+
+    maze = maze_generators.get(args.maze_type, lambda: None)()
+    if maze is None:
         print(f"Invalid maze type {args.maze_type}, please choose a valid maze type.\nValid maze types are: small:0, large:1, csv:2, random grid maze:3, random maze:4")
         return
     
