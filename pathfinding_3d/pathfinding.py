@@ -129,3 +129,67 @@ def path_finder_bfs(mazes, start_face, start_pos, end_face, end_pos, maze_size):
     # Convert visited to a list of tuples (face, (x, y)) if no path is found
     visited_list = [(f, pos) for f in visited for pos in visited[f]]
     return [], visited_list                                                         # Return an empty path and visited list
+
+
+
+class PathFinder:
+    def __init__(self, mazes, start_face, start_pos, end_face, end_pos, maze_size):
+        self.mazes = mazes
+        self.start_face = start_face
+        self.start_pos = start_pos
+        self.end_face = end_face
+        self.end_pos = end_pos
+        self.maze_size = maze_size
+        
+        self.current_pos = start_pos
+        self.current_face = start_face
+        
+        self.path = []
+        self.visited = {start_face: {start_pos}}            # Initialize visited set with start position
+        self.queue = deque([(self.start_face, self.start_pos)])  # Initialize queue with start position
+        self.parent = {self.start_face: {self.start_pos: None}}  # Initialize parent dictionary with start position
+        self.step = 0  # Initialize step counter
+
+    def advance_step(self):
+        if self.queue:
+            current_face, current_pos = self.queue.popleft()                    # Get the current position from the queue
+
+            if (current_face, current_pos) == (self.end_face, self.end_pos):    # Check if we have reached the end
+                path = []
+                while current_pos is not None:                                  # Reconstruct the path
+                    path.append((current_face, current_pos))                    # Add the current position to the path
+
+                    if self.parent[current_face][current_pos] is not None:                  # If there is a parent
+                        current_face, current_pos = self.parent[current_face][current_pos]  # Move to the parent position
+                    else:                       # If there is no parent, we have reached the start or an isolated point
+                        break                   # Break out of the loop
+                self.path = path[::-1]          # Store the reversed path
+                return self.current_pos, self.current_face
+
+            for neighbor_face, neighbor_pos in get_neighbors(current_face, current_pos, self.maze_size):  # Iterate over the neighbors
+                
+                if neighbor_pos not in self.visited.get(neighbor_face, set()) and self.mazes[neighbor_face][neighbor_pos[0]][neighbor_pos[1]] != 1:
+                    if neighbor_face not in self.visited:                           # If the neighbor face is not in visited
+                        self.visited[neighbor_face] = set()                         # Add the face to visited
+                        self.parent[neighbor_face] = {}                             # Add the face to parent
+                    self.visited[neighbor_face].add(neighbor_pos)                   # Add the neighbor to visited
+                    self.parent[neighbor_face][neighbor_pos] = (current_face, current_pos)  # Set the parent of the neighbor
+                    self.queue.append((neighbor_face, neighbor_pos))                # Add the neighbor to the queue
+
+            self.current_pos, self.current_face = current_pos, current_face         # Update the current position and face
+            self.step += 1  # Increment step counter
+
+        return self.current_pos, self.current_face
+
+    def get_path(self):
+        return self.path
+
+    def get_visited(self):
+        visited_list = [(f, pos) for f in self.visited for pos in self.visited[f]]
+        return visited_list
+    
+    def get_neighbors(self):
+        return get_neighbors(self.current_face, self.current_pos, self.maze_size)
+    
+    def get_step(self):
+        return self.step

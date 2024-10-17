@@ -1,7 +1,6 @@
 import random
-import time
 from ursina import *
-from pathfinding import path_finder_bfs
+from pathfinding import path_finder_bfs, PathFinder
 
 # random.seed(42)  # Set seed for reproducibility testing
 
@@ -10,7 +9,7 @@ app = Ursina()  # Initialize the app
 size = 3        # Size of the cube
 maze_size = 25  # Size of the maze
 
-wall_scale = 0.025
+wall_scale = 0.035
 path_scale = 0.0125
 path_step_scale = 0.05
 start_end_scale = 0.1
@@ -224,6 +223,28 @@ def place_start_end(mazes):
     return start_face, start_pos, end_face, end_pos
 
 
+def place_path(visited, mazes, color=color.gold, alpha=1):
+    """
+    Places a path in the 3D maze based on the visited positions.
+
+    Args:
+        visited (list of tuples): A list of tuples where each tuple contains a face index and a position (x, y) 
+                                  that has been visited.
+        mazes (list of lists of lists): A 3D list representing the maze structure where each face is a 2D grid.
+
+    Returns:
+        None
+    """
+    for face, pos in visited:                                                           # Iterate over the visited positions
+        if mazes[face][pos[0]][pos[1]] == 0:                                            # Check if the position is a valid path
+            path_entity = Entity(parent=cube)                                           # Create a parent entity for the path
+            path_wall = Entity(parent=path_entity, model='cube', color=color, alpha=alpha)      # Attach a wall to the path_entity
+            path_wall.scale = (1/maze_size -.001, 1/maze_size-.001, path_scale)                 # Scale the wall to fit the grid
+            path_wall.x = (pos[0] + 0.5) / maze_size - 0.5                              # Position the wall in the grid, x
+            path_wall.y = (pos[1] + 0.5) / maze_size - 0.5                              # Position the wall in the grid, y
+            set_face_position(path_entity, face)
+
+
 def place_path_step_by_step(path, mazes):
     """
     Creates a function to place path steps in a 3D maze step by step.
@@ -259,37 +280,45 @@ def place_path_step_by_step(path, mazes):
     return update_path
 
 
-def place_path(visited, mazes, color=color.gold, alpha=1):
+def place_path_step_by_step_with_pathfinder(mazes, start_face, start_pos, end_face, end_pos, maze_size):
     """
-    Places a path in the 3D maze based on the visited positions.
-
+    Places path steps in a 3D maze step by step using the PathFinder class.
     Args:
-        visited (list of tuples): A list of tuples where each tuple contains a face index and a position (x, y) 
-                                  that has been visited.
-        mazes (list of lists of lists): A 3D list representing the maze structure where each face is a 2D grid.
-
+        mazes (dict): A dictionary where keys are face identifiers and values are 2D lists representing the maze grid on each face.
+        start_face (str): The face identifier where the start position is placed.
+        start_pos (tuple): The (row, column) position of the start within the start_face.
+        end_face (str): The face identifier where the end position is placed.
+        end_pos (tuple): The (row, column) position of the end within the end_face.
+        maze_size (int): The size of the maze.
     Returns:
-        None
+        tuple: A tuple containing:
+            - update_vis (function): A function that, when called, places the next step in the path on the maze.
+            - path_finder (PathFinder): The PathFinder object used for pathfinding.
     """
-    for face, pos in visited:                                                           # Iterate over the visited positions
-        if mazes[face][pos[0]][pos[1]] == 0:                                            # Check if the position is a valid path
-            path_entity = Entity(parent=cube)                                           # Create a parent entity for the path
-            path_wall = Entity(parent=path_entity, model='cube', color=color, alpha=alpha)      # Attach a wall to the path_entity
-            path_wall.scale = (1/maze_size -.001, 1/maze_size-.001, path_scale)                 # Scale the wall to fit the grid
-            path_wall.x = (pos[0] + 0.5) / maze_size - 0.5                              # Position the wall in the grid, x
-            path_wall.y = (pos[1] + 0.5) / maze_size - 0.5                              # Position the wall in the grid, y
-            set_face_position(path_entity, face)
+    path_finder = PathFinder(mazes, start_face, start_pos, end_face, end_pos, maze_size)        # Create a PathFinder object
+    visited = []
+        
+    # Define the update_path function
+    def update_vis():
+        if path_finder.current_pos != end_pos:                              # Check if the current position is not the end
+            path_finder.advance_step()                                      # Advance to the next step
+            
+            to_add = []        
+            for face, positions in path_finder.visited.items():             # Iterate over the visited positions
+                for pos in positions:
+                    if (face, pos) not in visited:                          # Check if the position has not been visited
+                        visited.append((face, pos))                         # Add the position to the visited list
+                        to_add.append((face, pos))                          # Add the position to the to_add list
+                    
+                place_path(to_add, mazes, color=visited_color, alpha=.75)
+            return None
+        else:
+            return path_finder.path                                         # Return the path if the end has been reached
+
+    return update_vis, path_finder
 
 
-def input(key):
-    if key == 'space':
-        invoke(repeat_update, delay=0)  # Start the repeated update process immediately
-def repeat_update():
-    result = update_path()              # Call the update_path function
-    if result is True:                  # If all path steps have been placed, stop further updates
-        print("All path steps placed!")
-        return
-    invoke(repeat_update, delay=.25)      # Schedule the next update      
+
 
 # Create grid lines for each face
 if grid_lines:
@@ -311,10 +340,11 @@ mazes = {   'front': create_maze('front'),
 # Place the start and end points
 start_face, start_pos, end_face, end_pos = place_start_end(mazes)
 
-# Find the path and place it in the maze
+# Find the path and visited
 path, visited = path_finder_bfs(mazes, start_face, start_pos, end_face, end_pos, maze_size)
-place_path(path, mazes, color=path_color)
-place_path(visited, mazes, color=visited_color, alpha=.75)  
+
+# Place the visited cells step by step using the PathFinder class
+update_vis, path_finder = place_path_step_by_step_with_pathfinder(mazes, start_face, start_pos, end_face, end_pos, maze_size)
 
 # Place the path step by step
 update_path = place_path_step_by_step(path, mazes)
@@ -322,13 +352,29 @@ update_path = place_path_step_by_step(path, mazes)
 # Create the legend with an adjustable offset
 create_legend(legend_offset_y=-0.1) 
 
-# Add instructional text at the center bottom of the screen
+# Add camera instructional text at the center bottom of the screen
 instruction_text = Text(
-    text="Right-click and move the mouse to move the camera.\nPress the spacebar to show the path steps.",
+    text="""
+            Right-click and move the mouse to move the camera.          
+        """,
     parent=camera.ui,
     origin=(0, 0),
     scale=1,
     position=(0, -0.45),  # Adjust position to be at the center bottom
+    color=color.white
+)
+
+# Add keys instructional text at the bottom left of the screen
+keys_text = Text(
+    text="""
+            [a] to place all visited cells.
+            [p] to place the path steps.
+            [v] to visualize the pathfinding process.
+        """,
+    parent=camera.ui,
+    origin=(-0.5, 0),
+    scale=1,
+    position=(-.95, -0.45),  # Adjust position to be at the bottom left
     color=color.white
 )
 
@@ -337,11 +383,51 @@ window.color = color.black
 window.title = '3D Pathfinding Maze'
 window.borderless = False  
 window.fullscreen = False  
-window.exit_button.visible = False  
-window.fps_counter.enabled = True  # Show FPS counter
+window.exit_button.visible = False  # Hide exit button
 
-
+# Set Ursina development mode to False
+application.development_mode = False
 EditorCamera()
+
+# Logic to handle user input
+locked = False
+def input(key):
+    global locked
+    if key == 'v' and not locked:
+        locked = True
+        invoke(repeat_update_vis, delay=0)      # Start the repeated update_vis process immediately
+    elif key == 'p' and not locked:
+        locked = True
+        invoke(repeat_update_path, delay=0)     # Start the repeated update_path process immediately
+    elif key == 'a' and not locked:
+        locked = True
+        place_path(path, mazes, color=path_color)
+        place_path(visited, mazes, color=visited_color, alpha=.75)
+        
+# Function to repeat the update_vis function
+def repeat_update_vis():
+    global locked
+    result = update_vis()                           # Call the update_vis function
+    if result is True:                              # If all path steps have been placed, stop further updates
+        print("All visited cells placed!")
+        input.update_vis_done = True
+        locked = False
+        return
+    invoke(repeat_update_vis, delay=.1)            # Schedule the next update
+
+# Function to repeat the update_path function
+def repeat_update_path():
+    global locked
+    result = update_path()                          # Call the update_path function
+    if result is True:                              # If all path steps have been placed, stop further updates
+        print("All path steps placed!")
+        input.update_path_done = True
+        locked = False
+        return
+    invoke(repeat_update_path, delay=.25)           # Schedule the next update
+
+
+
 app.run()
 
 
