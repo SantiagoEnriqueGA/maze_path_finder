@@ -81,7 +81,6 @@ def get_neighbors(face, pos,maze_size):
 def path_finder_bfs(mazes, start_face, start_pos, end_face, end_pos, maze_size):
     """
     Uses a breadth-first search algorithm to find the shortest path from the start to the end position.
-    Finds a path from a start position to an end position in a 3D maze.
     Args:
         mazes (dict): A dictionary where keys are face identifiers and values are 2D lists representing the maze grid.
                       Each cell in the grid can be 0 (walkable) or 1 (blocked).
@@ -89,10 +88,11 @@ def path_finder_bfs(mazes, start_face, start_pos, end_face, end_pos, maze_size):
         start_pos (tuple): A tuple (x, y) representing the starting position on the start_face.
         end_face (any): The identifier for the ending face of the maze.
         end_pos (tuple): A tuple (x, y) representing the ending position on the end_face.
-        maze_size(int): An integer representing the length of a cubical maze.
+        maze_size (int): An integer representing the length of a cubical maze.
     Returns:
         list: A list of tuples representing the path from the start position to the end position.
               Each tuple is of the form (face, (x, y)). If no path is found, returns an empty list.
+        list: A list of tuples representing all visited positions in the form (face, (x, y)).
     """
     queue = deque([(start_face, start_pos)])        # Initialize queue with start position
     visited = {start_face: {start_pos}}             # Initialize visited set with start position
@@ -111,7 +111,9 @@ def path_finder_bfs(mazes, start_face, start_pos, end_face, end_pos, maze_size):
                 
                 else:                                                               # If there is no parent, we have reached the start or an isolated point
                     break                                                           # Break out of the loop
-            return path[::-1], visited                                              # Return the reversed path  
+            # Convert visited to a list of tuples (face, (x, y)) for all visited positions
+            visited_list = [(f, pos) for f in visited for pos in visited[f]]
+            return path[::-1], visited_list                                         # Return the reversed path and visited list
 
         for neighbor_face, neighbor_pos in get_neighbors(current_face, current_pos,maze_size):    # Iterate over the neighbors
             
@@ -124,4 +126,6 @@ def path_finder_bfs(mazes, start_face, start_pos, end_face, end_pos, maze_size):
                 visited[neighbor_face].add(neighbor_pos)                            # Add the neighbor to visited
                 parent[neighbor_face][neighbor_pos] = (current_face, current_pos)   # Set the parent of the neighbor
                 queue.append((neighbor_face, neighbor_pos))                         # Add the neighbor to the queue
-    return [], visited
+    # Convert visited to a list of tuples (face, (x, y)) if no path is found
+    visited_list = [(f, pos) for f in visited for pos in visited[f]]
+    return [], visited_list                                                         # Return an empty path and visited list

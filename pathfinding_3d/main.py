@@ -231,7 +231,7 @@ def place_path_step_by_step(path, mazes):
     return update_path
 
 
-def place_path(visited, mazes):
+def place_path(visited, mazes, color=color.gold, alpha=1):
     """
     Places a path in the 3D maze based on the visited positions.
 
@@ -246,7 +246,7 @@ def place_path(visited, mazes):
     for face, pos in visited:                                                           # Iterate over the visited positions
         if mazes[face][pos[0]][pos[1]] == 0:                                            # Check if the position is a valid path
             path_entity = Entity(parent=cube)                                           # Create a parent entity for the path
-            path_wall = Entity(parent=path_entity, model='cube', color=color.gold)      # Attach a wall to the path_entity
+            path_wall = Entity(parent=path_entity, model='cube', color=color, alpha=alpha)      # Attach a wall to the path_entity
             path_wall.scale = (1/maze_size -.001, 1/maze_size-.001, path_scale)                 # Scale the wall to fit the grid
             path_wall.x = (pos[0] + 0.5) / maze_size - 0.5                              # Position the wall in the grid, x
             path_wall.y = (pos[1] + 0.5) / maze_size - 0.5                              # Position the wall in the grid, y
@@ -285,8 +285,8 @@ start_face, start_pos, end_face, end_pos = place_start_end(mazes)
 
 # Find the path and place it in the maze
 path, visited = path_finder_bfs(mazes, start_face, start_pos, end_face, end_pos, maze_size)
-place_path(path, mazes)  
-# TODO: PLACE VISITED
+place_path(path, mazes, color=color.gold)
+place_path(visited, mazes, color=color.light_gray, alpha=.75)  
 
 # Place the path step by step
 update_path = place_path_step_by_step(path, mazes)
