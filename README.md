@@ -1,18 +1,55 @@
 # Maze Path Finder
 
-This project, **maze_path_finder**, implements multiple algorithms for maze path finding with visualization using the curses library.
+This project, **maze_path_finder**, implements multiple algorithms for maze path finding. There are two implementations, one for path finding in 2D, on a square grid, and in 3D, on a cubical grid.
+
+For our 2D path finding the visualization are done using the curses library and the 3D path finding visuals are done using the ursina library.
+
 
 ## Project Structure
-- **path_finder.py**: The main script that implements the path finding algorithms and visualization.
-- **maze.csv**: Contains the maze data in CSV format.
-- **requirements.txt**: Packages required (curses)
+- **pathfinding/path_finder.py**: The main script that implements the path finding algorithms and visualization.
+- **pathfinding/maze.csv**: Contains the maze data in CSV format.
+- **pathfinding_3d/main.py**: The main script for 3D path finding algorithms.
+- **pathfinding_3d/pathfinding.py**: Implements 3D path finding methods and handles the relationship of cells across cube faces.
+- **requirements.txt**: Packages required
 
 ## Features
 
-- Multiple path finding algorithms.
-- Visualization of the maze and the path finding process using the curses library.
+- **2D Path Finding**:
+    - Visualization of the maze and the path finding process using the curses library.
+    - Multiple path finding algorithms.
+- **3D Path Finding**: 
+    - Visualization of the maze and the path finding process using the ursina library.
+    - Interactive, user controllable camera view.
 
-## Usage
+## 2D Path Finding Visualized
+The visualization is done using the curses library, which provides a terminal-based interface to display the maze and the path finding process.  
+
+### `python pathfinding/path_finder.py --maze_type 0`
+![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_0.png)
+<!-- 
+
+### `python pathfinding/path_finder.py --maze_type 1`
+![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_1.png)
+
+
+### `python pathfinding/path_finder.py --maze_type 3 --rows 25 --cols 25`  
+![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_3_r25_c25.png) -->
+
+
+### `python pathfinding/path_finder.py --maze_type 4 --rows 20 --cols 20`  
+![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_4_r20_c20.png)
+
+
+## 3D Path Finding Visualized
+The visualization is done using the ursina library.
+
+Ursina is a game engine for Python built on top of the Panda3D engine, designed to make it easier to develop games and visualizations. It provides an API for creating 3D applications, handling input, and managing game logic. 
+
+### `python pathfinding_3d/main.py `  
+<!-- ![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_4_r20_c20.png) -->
+
+
+## Usage 2D path finding:
 
 1. Ensure you have Python installed on your system.  
 2. Install the required dependencies:  
@@ -20,9 +57,9 @@ This project, **maze_path_finder**, implements multiple algorithms for maze path
     ```sh
     pip install -r requirements.txt
     ```
-3. Run the path finder script:
+3. Run the 2D path finder script:
     ```sh
-    python path_finder.py
+    python pathfinding/path_finder.py
     ```
 
 ### Command Line Arguments
@@ -37,6 +74,18 @@ This project, **maze_path_finder**, implements multiple algorithms for maze path
 **Note**: [--rows ROWS] and [--cols COLS] arguments will only apply to Maze types Random grid maze: 3 and Random maze: 4
 
 
+## Usage 3D path finding:
+
+1. Ensure you have Python installed on your system.  
+2. Install the required dependencies:  
+    ```sh
+    pip install -r requirements.txt
+    ```
+3. Run the 3D main script:
+    ```sh
+    python pathfinding_3d/main.py
+    ```
+
 ## Algorithms Implemented
 
 1. Breadth-First Search (BFS)
@@ -47,7 +96,7 @@ This project, **maze_path_finder**, implements multiple algorithms for maze path
 6. Bidirectional Search 
 
 
-### Algorithms
+### Algorithms Explained
 #### 1. Breadth-First Search (BFS)
 Breadth-First Search is an algorithm that explores all the nodes at the present depth level before moving on to the nodes at the next depth level. It uses a queue to keep track of the nodes to be explored next. The implementation can be found in the [`bfs`](path_finder.py) function.
 
@@ -81,22 +130,6 @@ The Chebyshev distance between two points is the maximum of the absolute differe
 The Octile distance is a combination of Manhattan and diagonal distances. It is used in grid-based path finding where diagonal movement is allowed but has a different cost than horizontal and vertical movement. The implementation can be found in the [`heuristic`](path_finder.py) function with the type `"octile"`.
 
 
-## Visualization
-The visualization is done using the curses library, which provides a terminal-based interface to display the maze and the path finding process.  
-Here are some examples:
-### `python path_finder.py --maze_type 0`
-![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_0.png)
 
-
-### `python path_finder.py --maze_type 1`
-![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_1.png)
-
-
-### `python path_finder.py --maze_type 3 --rows 25 --cols 25`  
-![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_3_r25_c25.png)
-
-
-### `python path_finder.py --maze_type 4 --rows 20 --cols 20`  
-![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_4_r20_c20.png)
 
 
