@@ -46,7 +46,7 @@ The visualization is done using the ursina library.
 Ursina is a game engine for Python built on top of the Panda3D engine, designed to make it easier to develop games and visualizations. It provides an API for creating 3D applications, handling input, and managing game logic. 
 
 ### `python pathfinding_3d/main.py `  
-<!-- ![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_4_r20_c20.png) -->
+![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/cube_maze_25.png)
 
 
 ## Usage 2D path finding:
