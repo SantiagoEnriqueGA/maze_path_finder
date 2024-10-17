@@ -15,7 +15,7 @@ import argparse
 import queue
 import heapq
 
-def maze_csv(path='maze.csv'): 
+def maze_csv(path='pathfinding/maze.csv'): 
     """Reads a maze from a CSV file."""
     with open(path, newline='') as f:
         reader = csv.reader(f)
