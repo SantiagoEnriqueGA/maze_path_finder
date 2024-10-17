@@ -11,16 +11,45 @@ size = 3        # Size of the cube
 maze_size = 25  # Size of the maze
 
 wall_scale = 0.025
-path_scale = 0.025
+path_scale = 0.0125
 path_step_scale = 0.05
 start_end_scale = 0.1
 cube_opacity = 1
 grid_lines = False
 
-# Create the cube entity
-# cube = Entity(model='cube', color=color.azure, scale=size, alpha=0.75) #for debuging
-cube = Entity(model='cube', color=color.azure, scale=size, alpha=cube_opacity) 
+cube_color = color.azure
+line_color = color.white
+maze_color = color.gray
+start_color = color.green
+end_color = color.red
+path_color = color.gold
+path_step_color = color.magenta
+visited_color = color.light_gray
 
+# Function to create the legend
+def create_legend(legend_offset_y=0):
+    # Vertical spacing between items in the legend
+    item_spacing = 0.04
+    
+    # Add legend items
+    legend_items = [
+        ('Start', start_color),
+        ('End', end_color),
+        ('Path', path_color),
+        ('Path Step', path_step_color),
+        ('Cell Visited', visited_color),
+        ('Wall', maze_color),
+    ]
+
+    for i, (label, color_) in enumerate(legend_items):
+        # Create a small square representing the color
+        legend_color_block = Entity(parent=camera.ui, model='quad', scale=(0.02, 0.02), color=color_, position=(-0.8, 0.5 - i * item_spacing + legend_offset_y, 0))
+        
+        # Create text next to the color block
+        legend_text = Text(text=label, parent=camera.ui, origin=(-0.5, 0), scale=1, position=(-0.775, 0.5 - i * item_spacing + legend_offset_y))
+
+# Create the cube entity
+cube = Entity(model='cube', color=cube_color, scale=size, alpha=cube_opacity) 
 
 # Add edges using a wireframe
 edges = Entity(
@@ -38,7 +67,7 @@ edges = Entity(
         ],
         mode='line'
     ),                              # Display only the edges as lines
-    color=color.white,
+    color=line_color,
     scale=size + 0.01               # Slightly larger to make the edges visible
 )
 
@@ -97,12 +126,12 @@ def create_grid_lines(face):
     for i in range(1, maze_size):   # Iterate over the grid lines
         
         # Vertical lines
-        vline = Entity(parent=lines, model='wireframe_cube', color=color.white)
+        vline = Entity(parent=lines, model='wireframe_cube', color=line_color)
         vline.scale = (0.002, 1, 0.002)
         vline.x = i * step - 0.5
         
         # Horizontal lines
-        hline = Entity(parent=lines, model='wireframe_cube', color=color.white)
+        hline = Entity(parent=lines, model='wireframe_cube', color=line_color)
         hline.scale = (1, 0.002, 0.002)
         hline.y = i * step - 0.5
     
@@ -141,7 +170,7 @@ def create_maze(face):
     for i in range(maze_size):
         for j in range(maze_size):
             if maze[i][j] == 1:                                                     # If there is a wall
-                wall = Entity(parent=face_entity, model='cube', color=color.gray)   # Attach wall to face_entity
+                wall = Entity(parent=face_entity, model='cube', color=maze_color)   # Attach wall to face_entity
                 wall.scale = (1/maze_size, 1/maze_size, wall_scale)              # Scale the wall to fit the grid
                 wall.x = (i + 0.5) / maze_size - 0.5                                # Position the wall in the grid, x
                 wall.y = (j + 0.5) / maze_size - 0.5                                # Position the wall in the grid, y
@@ -178,7 +207,7 @@ def place_start_end(mazes):
     
     # Create a parent entity for the start face
     start_entity = Entity(parent=cube)
-    start_wall = Entity(parent=start_entity, model='cube', color=color.green)
+    start_wall = Entity(parent=start_entity, model='cube', color=start_color)
     start_wall.scale = (1/maze_size, 1/maze_size, start_end_scale)
     start_wall.x = (start_pos[0] + 0.5) / maze_size - 0.5
     start_wall.y = (start_pos[1] + 0.5) / maze_size - 0.5
@@ -186,14 +215,13 @@ def place_start_end(mazes):
     
     # Create a parent entity for the end face
     end_entity = Entity(parent=cube)
-    end_wall = Entity(parent=end_entity, model='cube', color=color.red)
+    end_wall = Entity(parent=end_entity, model='cube', color=end_color)
     end_wall.scale = (1/maze_size, 1/maze_size, start_end_scale)
     end_wall.x = (end_pos[0] + 0.5) / maze_size - 0.5
     end_wall.y = (end_pos[1] + 0.5) / maze_size - 0.5
     set_face_position(end_entity, end_face)
     
     return start_face, start_pos, end_face, end_pos
-
 
 
 def place_path_step_by_step(path, mazes):
@@ -216,7 +244,7 @@ def place_path_step_by_step(path, mazes):
                 # print(f"Step {step_index + 1}: {face}, {pos}")
                 
                 path_entity = Entity(parent=cube)                                       # Create a parent entity for the path
-                path_wall = Entity(parent=path_entity, model='cube', color=color.red)   # Attach a red wall to the path_entity
+                path_wall = Entity(parent=path_entity, model='cube', color=path_step_color)   # Attach a red wall to the path_entity
                 path_wall.scale = (1/maze_size, 1/maze_size, path_step_scale)                      # Scale the wall to fit the grid
                 path_wall.x = (pos[0] + 0.5) / maze_size - 0.5                          # Position the wall in the grid, x
                 path_wall.y = (pos[1] + 0.5) / maze_size - 0.5                          # Position the wall in the grid, y
@@ -285,13 +313,34 @@ start_face, start_pos, end_face, end_pos = place_start_end(mazes)
 
 # Find the path and place it in the maze
 path, visited = path_finder_bfs(mazes, start_face, start_pos, end_face, end_pos, maze_size)
-place_path(path, mazes, color=color.gold)
-place_path(visited, mazes, color=color.light_gray, alpha=.75)  
+place_path(path, mazes, color=path_color)
+place_path(visited, mazes, color=visited_color, alpha=.75)  
 
 # Place the path step by step
 update_path = place_path_step_by_step(path, mazes)
 
+# Create the legend with an adjustable offset
+create_legend(legend_offset_y=-0.1) 
+
+# Add instructional text at the center bottom of the screen
+instruction_text = Text(
+    text="Right-click and move the mouse to move the camera.\nPress the spacebar to show the path steps.",
+    parent=camera.ui,
+    origin=(0, 0),
+    scale=1,
+    position=(0, -0.45),  # Adjust position to be at the center bottom
+    color=color.white
+)
+
+# Set the window
 window.color = color.black
+window.title = '3D Pathfinding Maze'
+window.borderless = False  
+window.fullscreen = False  
+window.exit_button.visible = False  
+window.fps_counter.enabled = True  # Show FPS counter
+
+
 EditorCamera()
 app.run()
 
