@@ -1,5 +1,5 @@
-from calendar import c
 import random
+import time
 from ursina import *
 from collections import deque
 
@@ -8,11 +8,19 @@ from collections import deque
 app = Ursina()  # Initialize the app
 
 size = 3        # Size of the cube
-maze_size = 20  # Size of the maze
+maze_size = 25  # Size of the maze
 
-# Create a single cube entity with 6 solid colored sides
+wall_scale = 0.025
+path_scale = 0.025
+path_step_scale = 0.05
+start_end_scale = 0.1
+cube_opacity = 1
+grid_lines = False
+
+# Create the cube entity
 # cube = Entity(model='cube', color=color.azure, scale=size, alpha=0.75) #for debuging
-cube = Entity(model='cube', color=color.azure, scale=size)
+cube = Entity(model='cube', color=color.azure, scale=size, alpha=cube_opacity) 
+
 
 # Add edges using a wireframe
 edges = Entity(
@@ -134,7 +142,7 @@ def create_maze(face):
         for j in range(maze_size):
             if maze[i][j] == 1:                                                     # If there is a wall
                 wall = Entity(parent=face_entity, model='cube', color=color.gray)   # Attach wall to face_entity
-                wall.scale = (1/maze_size -.01, 1/maze_size-.01, 0.01)              # Scale the wall to fit the grid
+                wall.scale = (1/maze_size, 1/maze_size, wall_scale)              # Scale the wall to fit the grid
                 wall.x = (i + 0.5) / maze_size - 0.5                                # Position the wall in the grid, x
                 wall.y = (j + 0.5) / maze_size - 0.5                                # Position the wall in the grid, y
                                 
@@ -171,7 +179,7 @@ def place_start_end(mazes):
     # Create a parent entity for the start face
     start_entity = Entity(parent=cube)
     start_wall = Entity(parent=start_entity, model='cube', color=color.green)
-    start_wall.scale = (1/maze_size -.01, 1/maze_size-.01, 0.01)
+    start_wall.scale = (1/maze_size, 1/maze_size, start_end_scale)
     start_wall.x = (start_pos[0] + 0.5) / maze_size - 0.5
     start_wall.y = (start_pos[1] + 0.5) / maze_size - 0.5
     set_face_position(start_entity, start_face)
@@ -179,7 +187,7 @@ def place_start_end(mazes):
     # Create a parent entity for the end face
     end_entity = Entity(parent=cube)
     end_wall = Entity(parent=end_entity, model='cube', color=color.red)
-    end_wall.scale = (1/maze_size -.01, 1/maze_size-.01, 0.01)
+    end_wall.scale = (1/maze_size, 1/maze_size, start_end_scale)
     end_wall.x = (end_pos[0] + 0.5) / maze_size - 0.5
     end_wall.y = (end_pos[1] + 0.5) / maze_size - 0.5
     set_face_position(end_entity, end_face)
@@ -334,11 +342,17 @@ def place_path_step_by_step(path, mazes):
                 
                 path_entity = Entity(parent=cube)                                       # Create a parent entity for the path
                 path_wall = Entity(parent=path_entity, model='cube', color=color.red)   # Attach a red wall to the path_entity
-                path_wall.scale = (1/maze_size -.01, 1/maze_size-.01, 0.05)             # Scale the wall to fit the grid
+                path_wall.scale = (1/maze_size, 1/maze_size, path_step_scale)                      # Scale the wall to fit the grid
                 path_wall.x = (pos[0] + 0.5) / maze_size - 0.5                          # Position the wall in the grid, x
                 path_wall.y = (pos[1] + 0.5) / maze_size - 0.5                          # Position the wall in the grid, y
                 set_face_position(path_entity, face)                                    # Set the position and rotation of the path_entity
             step_index += 1 
+            
+        # Check if the last step has been placed
+        if step_index >= len(path):
+            return True  # All steps have been placed
+        else:
+            return None  # There are still more steps to place
     return update_path
 
 
@@ -358,23 +372,30 @@ def place_path(visited, mazes):
         if mazes[face][pos[0]][pos[1]] == 0:                                            # Check if the position is a valid path
             path_entity = Entity(parent=cube)                                           # Create a parent entity for the path
             path_wall = Entity(parent=path_entity, model='cube', color=color.gold)      # Attach a wall to the path_entity
-            path_wall.scale = (1/maze_size -.01, 1/maze_size-.01, 0.01)                 # Scale the wall to fit the grid
+            path_wall.scale = (1/maze_size -.001, 1/maze_size-.001, path_scale)                 # Scale the wall to fit the grid
             path_wall.x = (pos[0] + 0.5) / maze_size - 0.5                              # Position the wall in the grid, x
             path_wall.y = (pos[1] + 0.5) / maze_size - 0.5                              # Position the wall in the grid, y
             set_face_position(path_entity, face)
 
-# Define the input function to update the path
+
 def input(key):
     if key == 'space':
-        update_path()
+        invoke(repeat_update, delay=0)  # Start the repeated update process immediately
+def repeat_update():
+    result = update_path()              # Call the update_path function
+    if result is True:                  # If all path steps have been placed, stop further updates
+        print("All path steps placed!")
+        return
+    invoke(repeat_update, delay=1)      # Schedule the next update      
 
 # Create grid lines for each face
-create_grid_lines('front')
-create_grid_lines('back')
-create_grid_lines('left')
-create_grid_lines('right')
-create_grid_lines('top')
-create_grid_lines('bottom')
+if grid_lines:
+    create_grid_lines('front')
+    create_grid_lines('back')
+    create_grid_lines('left')
+    create_grid_lines('right')
+    create_grid_lines('top')
+    create_grid_lines('bottom')
 
 # Create a maze on each face
 mazes = {   'front': create_maze('front'),
