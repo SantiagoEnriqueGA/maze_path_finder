@@ -88,7 +88,7 @@ Here are some examples:
 ![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_0.png)
 
 
-###`*python path_finder.py --maze_type 1`
+### `python path_finder.py --maze_type 1`
 ![alt text](https://raw.githubusercontent.com/SantiagoEnriqueGA/maze_path_finder/refs/heads/main/img/maze_type_1.png)
 
 
